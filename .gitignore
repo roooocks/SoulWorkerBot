@@ -1,0 +1,12 @@
+# setting file
+.env
+
+# dummy folder
+__pycache__
+venv
+
+# folder in all file
+FileSys/
+
+# folder: Cogs
+Cogs/developer_features.py
