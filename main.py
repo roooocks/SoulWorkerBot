@@ -1,5 +1,3 @@
-import logging
-
 from os import environ
 
 from dotenv import load_dotenv
@@ -13,9 +11,6 @@ from discord.ext import commands
 
 class MyBot(commands.Bot):
     def __init__(self) -> None:
-        # Shard ID None has successfully RESUMED session "DISABLE!!!!!!!!!!!!!!!!"
-        logging.getLogger("discord").setLevel(logging.WARN)  
-
         # Setting Intents (Whitelist Gateway Intent)
         intents = Intents.default()
         intents.message_content = True
