@@ -1,4 +1,5 @@
 from os import environ
+from typing import List, Union
 
 from Module.basic import Basic
 
@@ -14,12 +15,16 @@ class NoticeFeatures(commands.Cog):
     async def channel_list(self,
         interaction: Interaction,
         current: str,
-    ) -> list[str, app_commands.Choice[str]]:
+    ) -> List[Union[str, app_commands.Choice[str]]]:
         list = {}
 
-        for channel in interaction.guild.text_channels:
-            if Basic._msg_permissions(channel, interaction.guild.me) and Basic._msg_permissions(channel, interaction.user):
-                list[channel.name] = str(channel.id)
+        text_channels = interaction.guild.text_channels
+        if len(current) == 0 and len(text_channels) >= 20:
+            list['채널이 너무 많습니다. 채널명을 검색해서 찾아주세요!'] = '999'
+        else:
+            for channel in text_channels:
+                if Basic._msg_permissions(channel, interaction.guild.me) and Basic._msg_permissions(channel, interaction.user):
+                    list[channel.name] = str(channel.id)
 
         return [
             app_commands.Choice(name=key, value=key + '/' + value)
