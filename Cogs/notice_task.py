@@ -51,23 +51,23 @@ class NoticeTask(commands.Cog):
 
         data = await self.__get()
 
-        if self.recent_date != data['date']:
+        if self.recent_date != data['booking_date']:
             for guild_id, channel_id in Basic._guild_channel.items():
                 channel = self.bot.get_channel(channel_id)
                 if channel is None:
                     continue
                 
                 if Basic._msg_permissions(channel, channel.guild.me): # channel 부분은 TextChannel이 불가능함
-                    await channel.send(embed = EmbedFrame._game_notice(data['title'], data['link'], data['src'], data['date']))
-                    Basic._print_log(f'{channel.guild.name}에서 {data["date"]}에 공지사항 출력됨')
-                    self.recent_date = data['date']
+                    await channel.send(embed = EmbedFrame._game_notice(data['title'], data['link'], data['src'], data['booking_date'], data['now_date']))
+                    Basic._print_log(f'{channel.guild.name}에서 {data["booking_date"]}의 공지사항 출력됨')
+                    self.recent_date = data['booking_date']
                 else:
                     Basic._print_log(f'{channel.guild.name}에서 {channel.name} 채널에 메시지 전송 권한이 존재하지 않습니다.')
 
     @upload.before_loop
     async def before_loop(self) -> None:
         Basic._print_log("waiting...")
-        self.recent_date = (await self.__get())['date']
+        self.recent_date = (await self.__get())['booking_date']
         
         # https://discordpy.readthedocs.io/en/stable/ext/tasks/index.html
         await self.bot.wait_until_ready()
@@ -75,7 +75,7 @@ class NoticeTask(commands.Cog):
     async def __get(self):
         async with aiohttp.ClientSession(headers = self.headers) as session:
             async with session.get(self.url) as res:
-                # Basic._print_log("Steam News RSS 진입")
+                Basic._print_log("Steam News RSS 진입")
                 
                 if res.status == 200:
                     result = {}
@@ -87,7 +87,9 @@ class NoticeTask(commands.Cog):
                     result['src'] = item.find('enclosure').get('url')
                     
                     # pubDate type = RFC433
-                    result['date'] = datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S %z').strftime("%Y-%m-%d %H:%M")
+                    # pubDate가 예약한 날짜로 나오는거라 판단 => 날짜를 [예약한 날짜, 가져온 날짜] 2가지로 나눠 저장
+                    result['booking_date'] = datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S %z').strftime("%Y-%m-%d %H:%M")
+                    result['now_date'] = datetime.now().strftime("%Y-%m-%d %H:%M")
 
                     # 디버깅용
                     # Basic._print_log('제목: ' + item.find("title").text)
