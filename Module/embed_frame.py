@@ -6,17 +6,20 @@ class EmbedFrame:
     def __init__(self):
         pass
 
-    def _game_notice(
+    def   _game_notice(
         title: str,
         link: str,
         src: str,
-        date: str
+        booking_date: str,
+        now_date: str
     ) -> Embed:
         embed = Embed(title = title, url = link)
         if src is not None:
             embed.set_image(url = src)
 
-        embed.set_footer(text = '공지 업로드 일자 ' + date)
+        # 스팀 소울워커의 공지 RSS는 거의 대부분이 당일날의 날짜와 시간이 아님 (예약이라 생각)
+        # 다른 게임에 사용할 경우 해당부분 수정
+        embed.set_footer(text = f'공지 업로드 예약 일자 : {booking_date}\n실제 공지 업로드 일자 : {now_date}')
         return embed
 
     def _bot_notice(
