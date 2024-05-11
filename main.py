@@ -47,8 +47,8 @@ class MyBot(commands.Bot):
         # version => 기능_종류.기능_수정(종합).오류_수정(종합)
         # 기능 종류에 개발자 관련은 제외
         # 1v => 1.3.1v
-        # 2v => 2.6.4v
-        await self.change_presence(status=Status.online, activity=Game("아린, 대기 중! - 2.6.4v"))
+        # 2v => 2.7.4v
+        await self.change_presence(status=Status.online, activity=Game("아린, 대기 중! - 2.7.4v"))
 
     async def on_guild_remove(self, guild: Guild):
         Basic._guild_channel.pop(guild.id)
