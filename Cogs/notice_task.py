@@ -75,7 +75,7 @@ class NoticeTask(commands.Cog):
     async def __get(self):
         async with aiohttp.ClientSession(headers = self.headers) as session:
             async with session.get(self.url) as res:
-                Basic._print_log("Steam News RSS 진입")
+                # Basic._print_log("Steam News RSS 진입")
                 
                 if res.status == 200:
                     result = {}
@@ -84,7 +84,7 @@ class NoticeTask(commands.Cog):
                     item = ET.fromstring(xmlData).find("channel/item")
                     result['title'] = item.find('title').text
                     result['link'] = item.find('link').text
-                    result['src'] = item.find('enclosure').get('url')
+                    result['src'] = item.find('enclosure').get('url') + "/?cc=KR&l=korean"
                     
                     # pubDate type = RFC433
                     # pubDate가 예약한 날짜로 나오는거라 판단 => 날짜를 [예약한 날짜, 가져온 날짜] 2가지로 나눠 저장
