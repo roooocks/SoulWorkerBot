@@ -83,8 +83,8 @@ class NoticeTask(commands.Cog):
 
                     item = ET.fromstring(xmlData).find("channel/item")
                     result['title'] = item.find('title').text
-                    result['link'] = item.find('link').text
-                    result['src'] = item.find('enclosure').get('url') + "/?cc=KR&l=korean"
+                    result['link'] = item.find('link').text + "/?cc=KR&l=korean"
+                    result['src'] = item.find('enclosure').get('url')
                     
                     # pubDate type = RFC433
                     # pubDate가 예약한 날짜로 나오는거라 판단 => 날짜를 [예약한 날짜, 가져온 날짜] 2가지로 나눠 저장
@@ -93,8 +93,8 @@ class NoticeTask(commands.Cog):
 
                     # 디버깅용
                     # Basic._print_log('제목: ' + item.find("title").text)
-                    # Basic._print_log('링크: ' + item.find("link").text)
-                    # Basic._print_log('이미지: ' + item.find("enclosure").get('url'))
+                    # Basic._print_log('링크: ' + item.find("link").text) + "/?cc=KR&l=korean"
+                    # Basic._print_log('썸네일: ' + item.find("enclosure").get('url'))
                     # Basic._print_log('날짜: ' + datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S %z').strftime("%Y-%m-%d %H-%M"))
                 
                     return result
