@@ -11,6 +11,9 @@ from discord.ext import commands, tasks
 
 class NoticeTask(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
+        # debug
+        self.error_check: bool = False
+
         # API call variable
         self.url: str = environ.get('NOTICE_URL')
         self.headers: dict = { 
@@ -37,9 +40,8 @@ class NoticeTask(commands.Cog):
     # Tasks setting
     # 봇이 멈추면 종료되기 전에 작동합니다.
     def cog_unload(self) -> None:
-        if self.upload.is_running():
-            Basic._print_log('stop notice upload')
-            self.upload.cancel()
+        Basic._print_log('stop notice upload') # 테스트 후 바꾸기
+        self.upload.cancel()
 
     @tasks.loop(seconds = 120)
     async def upload(self) -> None:
@@ -50,6 +52,9 @@ class NoticeTask(commands.Cog):
             return None
 
         data = await self.__get()
+        if not data:
+            # Basic._print_log("Steam RSS 내용 업데이트가 되지 않았습니다.")
+            return None
 
         if self.recent_date != data['booking_date']:
             for guild_id, channel_id in Basic._guild_channel.items():
@@ -67,7 +72,10 @@ class NoticeTask(commands.Cog):
     @upload.before_loop
     async def before_loop(self) -> None:
         Basic._print_log("waiting...")
-        self.recent_date = (await self.__get())['booking_date']
+        
+        data = await self.__get()
+        if data:
+            self.recent_date = data['booking_date']
         
         # https://discordpy.readthedocs.io/en/stable/ext/tasks/index.html
         await self.bot.wait_until_ready()
@@ -81,22 +89,30 @@ class NoticeTask(commands.Cog):
                     result = {}
                     xmlData = await res.text()
 
-                    item = ET.fromstring(xmlData).find("channel/item")
-                    result['title'] = item.find('title').text
-                    result['link'] = item.find('link').text + "/?cc=KR&l=korean"
-                    result['src'] = item.find('enclosure').get('url')
-                    
-                    # pubDate type = RFC433
-                    # pubDate가 예약한 날짜로 나오는거라 판단 => 날짜를 [예약한 날짜, 가져온 날짜] 2가지로 나눠 저장
-                    result['booking_date'] = datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S %z').strftime("%Y-%m-%d %H:%M")
-                    result['now_date'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    try:
+                        item = ET.fromstring(xmlData).find("channel/item")
+                        result['title'] = item.find('title').text
+                        result['link'] = item.find('link').text + "/?cc=KR&l=korean"
+                        result['src'] = item.find('enclosure').get('url')
 
-                    # 디버깅용
-                    # Basic._print_log('제목: ' + item.find("title").text)
-                    # Basic._print_log('링크: ' + item.find("link").text) + "/?cc=KR&l=korean"
-                    # Basic._print_log('썸네일: ' + item.find("enclosure").get('url'))
-                    # Basic._print_log('날짜: ' + datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S %z').strftime("%Y-%m-%d %H-%M"))
-                
+                        # pubDate type = RFC433
+                        # pubDate가 예약한 날짜로 나오는거라 판단 => 날짜를 [예약한 날짜, 가져온 날짜] 2가지로 나눠 저장
+                        result['booking_date'] = datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S %z').strftime("%Y-%m-%d %H:%M")
+                        result['now_date'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+                        # 디버깅용
+                        # Basic._print_log('제목: ' + item.find("title").text)
+                        # Basic._print_log('링크: ' + item.find("link").text) + "/?cc=KR&l=korean"
+                        # Basic._print_log('썸네일: ' + item.find("enclosure").get('url'))
+                        # Basic._print_log('날짜: ' + datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S %z').strftime("%Y-%m-%d %H-%M"))
+                    except:
+                        Basic._print_log("Steam RSS의 원인 모를 에러 발생")
+                        
+                        if not self.error_check:
+                            Basic._print_log("에러에 대한 XML 내용")
+                            Basic._print_log(xmlData)
+                            self.error_check = True
+
                     return result
                 else:
                     Basic._print_log(f'Steam News RSS의 {res.status} 코드')
